@@ -735,12 +735,12 @@ static bool __fastcall ShouldMipLevelsBeForcedResident_Hook(int thisp, int)
 // FixUltraWideScreenFOV & FontScaling
 // =====================================
 
-safetyhook::InlineHook SetBufferSize;
+safetyhook::InlineHook UpdateViewportRHI;
 
-static void __fastcall SetBufferSize_Hook(int thisp, int, int InBufferSizeX, int InBufferSizeY)
+static void __fastcall UpdateViewportRHI_Hook(int thisp, int, int a2, int NewSizeX, int NewSizeY, bool bNewIsFullscreen)
 {
-	g_State.screenWidth = InBufferSizeX;
-	g_State.screenHeight = InBufferSizeY;
+	g_State.screenWidth = NewSizeX;
+	g_State.screenHeight = NewSizeY;
 
 	// baseHeight for subtitles = 768
 	g_State.subtitlesScaleFactor = g_State.screenHeight / 768.0f;
@@ -764,12 +764,13 @@ static void __fastcall SetBufferSize_Hook(int thisp, int, int InBufferSizeX, int
 		}
 		else
 		{
-			MemoryHelper::WriteMemory<float>(g_State.pGEngine + 0x4A4, ASPECT_RATIO_16_9, false);
+			// Update Viewport and leave default FOV
+			MemoryHelper::WriteMemory<float>(g_State.pGEngine + 0x4A4, g_State.scaleFactor, false);
 			g_State.updateFOV = false;
 		}
 	}
 
-	SetBufferSize.thiscall<void>(thisp, InBufferSizeX, InBufferSizeY);
+	UpdateViewportRHI.thiscall<void>(thisp, a2, NewSizeX, NewSizeY, bNewIsFullscreen);
 }
 
 #pragma endregion
@@ -1337,11 +1338,10 @@ static void ApplyResolutionHook()
 	if (!FontScaling && !FixUltraWideScreenFOV) return;
 
 	DWORD addr_GetGEnginePtr = ScanModuleSignature(g_State.GameModule, "E8 ?? ?? ?? ?? 83 C4 40 A3 ?? ?? ?? ?? 68", "GetGEnginePtr");
-	DWORD addr_SetBufferSize = ScanModuleSignature(g_State.GameModule, "50 56 B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? B9 ?? ?? ?? ?? E8 ?? ?? ?? ?? 8B 4D F4 64 89 0D 00 00 00 00 59 5F 5E 8B E5 5D C2 08 00", "SetBufferSize");
-	addr_SetBufferSize = MemoryHelper::ResolveRelativeAddress(addr_SetBufferSize, 0x8);
+	DWORD addr_UpdateViewportRHI = ScanModuleSignature(g_State.GameModule, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC ?? 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D 45 F4 64 A3 00 00 00 00 8B ?? FF 15 ?? ?? ?? ??", "UpdateViewportRHI");
 
 	if (addr_GetGEnginePtr == 0 ||
-		addr_SetBufferSize == 0) {
+		addr_UpdateViewportRHI == 0) {
 		return;
 	}
 
@@ -1353,7 +1353,7 @@ static void ApplyResolutionHook()
 		}
 	);
 
-	SetBufferSize = HookHelper::CreateHook((void*)addr_SetBufferSize, &SetBufferSize_Hook);
+	UpdateViewportRHI = HookHelper::CreateHook((void*)addr_UpdateViewportRHI, &UpdateViewportRHI_Hook);
 }
 
 static void ApplyGetPointerHook()
