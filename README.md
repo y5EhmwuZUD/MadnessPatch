@@ -32,7 +32,7 @@ You can download it here: https://aka.ms/vs/17/release/vc_redist.x86.exe
 ### Steam Deck/Linux Specific Instructions (Windows users can skip this)
 
 > [!WARNING]
-> To launch the game on Steam Deck or Linux, open the game's properties in Steam and include `WINEDLLOVERRIDES="dinput8=n,b" %command%` in the launch options.
+> To launch the game on Steam Deck or Linux, set the game’s compatibility tool to Proton Experimental in the Steam properties.
 
 # Features
 
