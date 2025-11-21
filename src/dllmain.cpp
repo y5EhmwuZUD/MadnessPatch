@@ -45,6 +45,7 @@ struct GlobalState
 	bool prev_set40fps = false;
 	float original_fps = 0.0f;
 	bool shouldSkipMovie = false;
+	uintptr_t physXCoreModuleAddress = 0;
 };
 
 // Global instance
@@ -80,6 +81,7 @@ bool FixHighFPSClothPhysics = false;
 bool FixHighFPSProjectileCollisionCheck = false;
 bool FixHighFPSRagdollDeath = false;
 bool FixHashTableRaceCondition = false;
+bool FixPhysX = false;
 bool FixInputBinding = false;
 bool FixWindowHandling = false;
 
@@ -121,8 +123,6 @@ static std::unordered_map<std::wstring, ConfigOverride> g_configOverrides =
 {
 	// [Engine.Engine]
 	{L"MaxSmoothedFrameRate", {L"120", &EnableMaxSmoothedFrameRate}},
-	{L"MipLevelFadingInRate", {L"0.0", &ImprovedTextureStreaming}},
-	{L"MipLevelFadingOutRate", {L"0.0", &ImprovedTextureStreaming}},
 
 	// [Engine.ISVHacks]
 	{L"DisableATITextureFilterOptimizationChecks", {L"False", &DisableLegacyDriverHacks}},
@@ -177,6 +177,7 @@ static void ReadConfig()
 	FixHighFPSProjectileCollisionCheck = IniHelper::ReadInteger("Fixes", "FixHighFPSProjectileCollisionCheck", 1) == 1;
 	FixHighFPSRagdollDeath = IniHelper::ReadInteger("Fixes", "FixHighFPSRagdollDeath", 1) == 1;
 	FixHashTableRaceCondition = IniHelper::ReadInteger("Fixes", "FixHashTableRaceCondition", 1) == 1;
+	FixPhysX = IniHelper::ReadInteger("Fixes", "FixPhysX", 1) == 1;
 	FixInputBinding = IniHelper::ReadInteger("Fixes", "FixInputBinding", 1) == 1;
 	FixWindowHandling = IniHelper::ReadInteger("Fixes", "FixWindowHandling", 1) == 1;
 
@@ -499,6 +500,97 @@ static double __fastcall GetMaxTickRate_Hook(int thisp, int, float a2, int a3)
 	}
 
 	return GetMaxTickRate.unsafe_thiscall<double>(thisp, a2, a3);
+}
+
+// ======================
+// FixPhysX
+// ======================
+
+safetyhook::InlineHook PhysXLoad;
+
+static SafetyHookMid physxCrashFix1{};
+static SafetyHookMid physxCrashFix2{};
+
+static int __cdecl PhysXLoad_Hook()
+{
+	int result = PhysXLoad.ccall<int>();
+
+	HMODULE hModule = GetModuleHandleW(L"PhysXCore.dll");
+	if (hModule != NULL)
+	{
+		g_State.physXCoreModuleAddress = reinterpret_cast<uintptr_t>(hModule);
+		IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)(g_State.physXCoreModuleAddress);
+		IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(g_State.physXCoreModuleAddress + dos->e_lfanew);
+		DWORD timestamp = nt->FileHeader.TimeDateStamp;
+
+		if (timestamp == 0x60ED9FB3) // from NVIDIA drivers
+		{
+			physxCrashFix1 = safetyhook::create_mid(g_State.physXCoreModuleAddress + 0x1D9D8,
+				[](safetyhook::Context& ctx)
+				{
+					uint32_t ebp = ctx.ebp;
+					int ptr = MemoryHelper::ReadMemory<int>(ebp - 0x4);
+
+					if (!MemoryHelper::IsReadable((void*)ptr, 4))
+					{
+						ctx.eip = g_State.physXCoreModuleAddress + 0x1DAB8;
+					}
+				}
+			);
+
+			physxCrashFix2 = safetyhook::create_mid(g_State.physXCoreModuleAddress + 0x12E368,
+				[](safetyhook::Context& ctx)
+				{
+					uint32_t ebp = ctx.ebp;
+					int ptr = MemoryHelper::ReadMemory<int>(ebp - 0xC);
+
+					if (!MemoryHelper::IsReadable((void*)ptr, 4))
+					{
+						ctx.eip = g_State.physXCoreModuleAddress + 0x12E49A;
+					}
+				}
+			);
+		}
+		else if (timestamp == 0x4DC9B2B0) // from the game folder
+		{
+			physxCrashFix1 = safetyhook::create_mid(g_State.physXCoreModuleAddress + 0x1C806,
+				[](safetyhook::Context& ctx)
+				{
+					int ptr = MemoryHelper::ReadMemory<int>(ctx.ebx);
+
+					if (!MemoryHelper::IsReadable((void*)ptr, 4))
+					{
+						ctx.eip = g_State.physXCoreModuleAddress + 0x1C8EF;
+					}
+				}
+			);
+
+			physxCrashFix2 = safetyhook::create_mid(g_State.physXCoreModuleAddress + 0x127C8A,
+				[](safetyhook::Context& ctx)
+				{
+					uint32_t ebp = ctx.ebp;
+					int ptr = MemoryHelper::ReadMemory<int>(ebp - 0xC);
+
+					if (!MemoryHelper::IsReadable((void*)ptr, 4))
+					{
+						ctx.eip = g_State.physXCoreModuleAddress + 0x127DBA;
+					}
+				}
+			);
+		}
+	}
+
+	return result;
+}
+
+safetyhook::InlineHook PhysXRelease;
+
+static int __cdecl PhysXRelease_Hook()
+{
+	(void)physxCrashFix1.disable();
+	(void)physxCrashFix2.disable();
+
+	return PhysXRelease.ccall<int>();
 }
 
 // ======================
@@ -905,6 +997,43 @@ static void ApplyFixHashTableRaceCondition()
 	SetRenderingState = HookHelper::CreateHook((void*)addr_SetRenderingState, &SetRenderingState_Hook);
 	GetMaxTickRate = HookHelper::CreateHook((void*)addr_SetFPSRate, &GetMaxTickRate_Hook);
 	MemoryHelper::MakeNOP(addr_hashLoop + 0x10, 2);
+}
+
+static void ApplyFixPhysX()
+{
+	if (!FixPhysX) return;
+
+	DWORD addr_PhysXLoad = ScanModuleSignature(g_State.GameModule, "55 8B EC 83 EC ?? 53 56 57 68 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 6A 08 6A 04", "PhysXLoad");
+	DWORD addr_PhysXRelease = ScanModuleSignature(g_State.GameModule, "85 C0 74 14 50 E8 ?? ?? ?? ?? A1", "PhysXRelease", 2);
+
+	if (addr_PhysXLoad == 0 ||
+		addr_PhysXRelease == 0) {
+		return;
+	}
+
+	PhysXLoad = HookHelper::CreateHook((void*)addr_PhysXLoad, &PhysXLoad_Hook);
+	PhysXRelease = HookHelper::CreateHook((void*)addr_PhysXRelease, &PhysXRelease_Hook);
+
+	// Patch PhysXLoader to force the loading of PhysXCore from the game folder (more stable)
+	static SafetyHookMid physXLoaderPatch{};
+	physXLoaderPatch = safetyhook::create_mid(addr_PhysXLoad + 0x14,
+		[](safetyhook::Context& ctx)
+		{
+			HMODULE hModule = GetModuleHandleW(L"PhysXLoader.dll");
+			if (hModule != NULL)
+			{
+				uintptr_t base = reinterpret_cast<uintptr_t>(hModule);
+				IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)(base);
+				IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
+				DWORD timestamp = nt->FileHeader.TimeDateStamp;
+
+				if (timestamp == 0x4D7AEE2C)
+				{
+					MemoryHelper::WriteMemory<uint8_t>(base + 0xC468, 0);
+				}
+			}
+		}
+	);
 }
 
 static void ApplyFixInputBinding()
@@ -1405,6 +1534,7 @@ static void Init()
 	ApplyFixHighFPSProjectileCollisionCheck();
 	ApplyFixHighFPSRagdollDeath();
 	ApplyFixHashTableRaceCondition();
+	ApplyFixPhysX();
 	ApplyFixInputBinding();
 	ApplyFixWindowHandling();
 

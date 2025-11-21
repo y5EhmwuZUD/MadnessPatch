@@ -2,6 +2,15 @@
 
 namespace MemoryHelper
 {
+	__forceinline static bool IsReadable(const void* ptr, size_t size)
+	{
+		MEMORY_BASIC_INFORMATION mbi;
+		if (!VirtualQuery(ptr, &mbi, sizeof(mbi)))
+			return false;
+
+		return (mbi.State == MEM_COMMIT) && (mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE)) && ((reinterpret_cast<uintptr_t>(ptr) + size) <= (reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize));
+	}
+
 	template <typename T> static bool WriteMemory(uintptr_t address, T value, bool disableProtection = true)
 	{
 		DWORD oldProtect;
