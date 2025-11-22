@@ -1013,27 +1013,6 @@ static void ApplyFixPhysX()
 
 	PhysXLoad = HookHelper::CreateHook((void*)addr_PhysXLoad, &PhysXLoad_Hook);
 	PhysXRelease = HookHelper::CreateHook((void*)addr_PhysXRelease, &PhysXRelease_Hook);
-
-	// Patch PhysXLoader to force the loading of PhysXCore from the game folder (more stable)
-	static SafetyHookMid physXLoaderPatch{};
-	physXLoaderPatch = safetyhook::create_mid(addr_PhysXLoad + 0x14,
-		[](safetyhook::Context& ctx)
-		{
-			HMODULE hModule = GetModuleHandleW(L"PhysXLoader.dll");
-			if (hModule != NULL)
-			{
-				uintptr_t base = reinterpret_cast<uintptr_t>(hModule);
-				IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)(base);
-				IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
-				DWORD timestamp = nt->FileHeader.TimeDateStamp;
-
-				if (timestamp == 0x4D7AEE2C)
-				{
-					MemoryHelper::WriteMemory<uint8_t>(base + 0xC468, 0);
-				}
-			}
-		}
-	);
 }
 
 static void ApplyFixInputBinding()
