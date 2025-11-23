@@ -9,6 +9,7 @@
 #include "dllmain.hpp"
 #include "helper.hpp"
 #include <shlwapi.h>
+#include <ShlObj.h>
 #pragma comment(lib, "shlwapi.lib")
 
 struct GlobalState
@@ -96,6 +97,7 @@ bool SkipUEIntro = false;
 // Display
 bool FontScaling = false;
 float FontScalingFactor = 0;
+bool AutoResolution = false;
 bool UseWindowed = false;
 
 // Input
@@ -141,6 +143,8 @@ static std::unordered_map<std::wstring, ConfigOverride> g_configOverrides =
 
 	// [SystemSettings]
 	{L"Fullscreen", {L"False", &UseWindowed}},
+	{L"ResX", {L"1280", &AutoResolution}},
+	{L"ResY", {L"720", &AutoResolution}},
 
 	// [AliceGame.AliceGameEngine]
 	{L"GIsSpecialPCEdition", {L"True", &UnlockCompleteEditionDLC}},
@@ -192,6 +196,7 @@ static void ReadConfig()
 	// Display
 	FontScaling = IniHelper::ReadInteger("Display", "FontScaling", 1) == 1;
 	FontScalingFactor = IniHelper::ReadFloat("Display", "FontScalingFactor", 1.0f);
+	AutoResolution = IniHelper::ReadInteger("Display", "AutoResolution", 1) == 1;
 	UseWindowed = IniHelper::ReadInteger("Display", "UseWindowed", 0) == 1;
 
 	// Input
@@ -1278,6 +1283,39 @@ static void ApplyFontScaling()
 	);
 }
 
+static void ApplyAutoResolution()
+{
+	if (!AutoResolution) return;
+
+	DWORD addr_DocPath = ScanModuleSignature(g_State.GameModule, "C6 45 FC 0B 89 9D ?? FD FF FF 89 9D ?? FD FF FF 3B C3", "DocPath");
+
+	if (addr_DocPath == 0) return;
+
+	static SafetyHookMid applyAutoResolution{};
+	applyAutoResolution = safetyhook::create_mid(addr_DocPath,
+		[](safetyhook::Context& ctx)
+		{
+			const wchar_t* docPath = reinterpret_cast<const wchar_t*>(ctx.eax);
+
+			if (docPath)
+			{
+				// Check if the path exists
+				if (std::filesystem::exists(docPath))
+				{
+					AutoResolution = false;
+				}
+			}
+
+			if (AutoResolution)
+			{
+				auto [screenWidth, screenHeight] = SystemHelper::GetScreenResolution();
+				UpdateConfigInt(L"ResX", screenWidth);
+				UpdateConfigInt(L"ResY", screenHeight);
+			}
+		}
+	);
+}
+
 static void ApplyDisableMouseAcceleration()
 {
 	if (!DisableMouseAcceleration && !DisableControllerAcceleration) return;
@@ -1524,6 +1562,7 @@ static void Init()
 
 	// Display
 	ApplyFontScaling();
+	ApplyAutoResolution();
 
 	// Input
 	ApplyDisableMouseAcceleration();
