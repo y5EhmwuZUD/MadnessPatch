@@ -8,6 +8,33 @@
     <ClCompile Include="..\include\safetyhook\Zydis.c">
       <Filter>safetyhook</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\SDK\GameDefines.cpp">
+      <Filter>SDK</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\AliceGame_classes.cpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\Core_classes.cpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\Engine_classes.cpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\GameFramework_classes.cpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\GFxUI_classes.cpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\Kynapse_classes.cpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\WinDrv_classes.cpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\XAudio2_classes.cpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\dllmain.hpp" />
@@ -18,6 +45,84 @@
     <ClInclude Include="..\include\safetyhook\Zydis.h">
       <Filter>safetyhook</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\SDK\GameDefines.hpp">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SdkHeaders.hpp">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\AliceGame_classes.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\AliceGame_parameters.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\AliceGame_structs.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Core_classes.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Core_parameters.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Core_structs.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Engine_classes.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Engine_parameters.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Engine_structs.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GameFramework_classes.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GameFramework_parameters.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GameFramework_structs.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GFxUI_classes.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GFxUI_parameters.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GFxUI_structs.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Kynapse_classes.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Kynapse_parameters.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Kynapse_structs.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\WinDrv_classes.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\WinDrv_parameters.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\WinDrv_structs.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\XAudio2_classes.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\XAudio2_parameters.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\XAudio2_structs.hpp">
+      <Filter>SDK\SDK_HEADERS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="MadnessPatch.ini" />
@@ -25,6 +130,12 @@
   <ItemGroup>
     <Filter Include="safetyhook">
       <UniqueIdentifier>{3e16c9da-ba03-4fa3-a40a-d14c1a90f4bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK">
+      <UniqueIdentifier>{4380ffb1-3f4b-4660-afc9-75d30d7764d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK\SDK_HEADERS">
+      <UniqueIdentifier>{0c212c8a-c529-4312-b662-d497f915307f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

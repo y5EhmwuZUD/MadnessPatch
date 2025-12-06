@@ -135,7 +135,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MADNESSPATCH_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\include\SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalModuleDependencies>
       </AdditionalModuleDependencies>
@@ -174,6 +174,15 @@
   <ItemGroup>
     <ClCompile Include="..\include\safetyhook\safetyhook.cpp" />
     <ClCompile Include="..\include\safetyhook\Zydis.c" />
+    <ClCompile Include="..\include\SDK\GameDefines.cpp" />
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\AliceGame_classes.cpp" />
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\Core_classes.cpp" />
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\Engine_classes.cpp" />
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\GameFramework_classes.cpp" />
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\GFxUI_classes.cpp" />
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\Kynapse_classes.cpp" />
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\WinDrv_classes.cpp" />
+    <ClCompile Include="..\include\SDK\SDK_HEADERS\XAudio2_classes.cpp" />
     <ClCompile Include="..\src\dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -185,6 +194,32 @@
   <ItemGroup>
     <ClInclude Include="..\include\safetyhook\safetyhook.hpp" />
     <ClInclude Include="..\include\safetyhook\Zydis.h" />
+    <ClInclude Include="..\include\SDK\GameDefines.hpp" />
+    <ClInclude Include="..\include\SDK\SdkHeaders.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\AliceGame_classes.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\AliceGame_parameters.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\AliceGame_structs.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Core_classes.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Core_parameters.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Core_structs.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Engine_classes.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Engine_parameters.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Engine_structs.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GameFramework_classes.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GameFramework_parameters.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GameFramework_structs.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GFxUI_classes.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GFxUI_parameters.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\GFxUI_structs.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Kynapse_classes.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Kynapse_parameters.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\Kynapse_structs.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\WinDrv_classes.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\WinDrv_parameters.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\WinDrv_structs.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\XAudio2_classes.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\XAudio2_parameters.hpp" />
+    <ClInclude Include="..\include\SDK\SDK_HEADERS\XAudio2_structs.hpp" />
     <ClInclude Include="..\src\dllmain.hpp" />
     <ClInclude Include="..\src\helper.hpp" />
   </ItemGroup>
