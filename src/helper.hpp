@@ -123,7 +123,7 @@ namespace MemoryHelper
 		patternBytes.reserve(signature.size() / 2);
 		mask.reserve(signature.size() / 2);
 
-		for (size_t i = 0; i < signature.length(); ++i)
+		for (size_t i = 0; i < signature.length(); i++)
 		{
 			if (signature[i] == ' ')
 				continue;
@@ -140,12 +140,13 @@ namespace MemoryHelper
 			else
 			{
 				// fast hex parse
-				auto hexChar = [](char c) noexcept -> uint8_t {
+				auto hexChar = [](char c) noexcept -> uint8_t 
+				{
 					if (c >= '0' && c <= '9') return c - '0';
 					if (c >= 'A' && c <= 'F') return c - 'A' + 10;
 					if (c >= 'a' && c <= 'f') return c - 'a' + 10;
 					return 0;
-					};
+				};
 				uint8_t byte = (hexChar(signature[i]) << 4) | hexChar(signature[i + 1]);
 				patternBytes.push_back(byte);
 				mask.push_back(false);
@@ -239,28 +240,29 @@ namespace HookHelper
 		char errorMsg[0x200];
 		const char* errorType = "Unknown error";
 
-		switch (err.type) {
-		case safetyhook::InlineHook::Error::BAD_ALLOCATION:
-			errorType = "BAD_ALLOCATION";
-			break;
-		case safetyhook::InlineHook::Error::FAILED_TO_DECODE_INSTRUCTION:
-			errorType = "FAILED_TO_DECODE_INSTRUCTION";
-			break;
-		case safetyhook::InlineHook::Error::SHORT_JUMP_IN_TRAMPOLINE:
-			errorType = "SHORT_JUMP_IN_TRAMPOLINE";
-			break;
-		case safetyhook::InlineHook::Error::IP_RELATIVE_INSTRUCTION_OUT_OF_RANGE:
-			errorType = "IP_RELATIVE_INSTRUCTION_OUT_OF_RANGE";
-			break;
-		case safetyhook::InlineHook::Error::UNSUPPORTED_INSTRUCTION_IN_TRAMPOLINE:
-			errorType = "UNSUPPORTED_INSTRUCTION_IN_TRAMPOLINE";
-			break;
-		case safetyhook::InlineHook::Error::FAILED_TO_UNPROTECT:
-			errorType = "FAILED_TO_UNPROTECT";
-			break;
-		case safetyhook::InlineHook::Error::NOT_ENOUGH_SPACE:
-			errorType = "NOT_ENOUGH_SPACE";
-			break;
+		switch (err.type) 
+		{
+			case safetyhook::InlineHook::Error::BAD_ALLOCATION:
+				errorType = "BAD_ALLOCATION";
+				break;
+			case safetyhook::InlineHook::Error::FAILED_TO_DECODE_INSTRUCTION:
+				errorType = "FAILED_TO_DECODE_INSTRUCTION";
+				break;
+			case safetyhook::InlineHook::Error::SHORT_JUMP_IN_TRAMPOLINE:
+				errorType = "SHORT_JUMP_IN_TRAMPOLINE";
+				break;
+			case safetyhook::InlineHook::Error::IP_RELATIVE_INSTRUCTION_OUT_OF_RANGE:
+				errorType = "IP_RELATIVE_INSTRUCTION_OUT_OF_RANGE";
+				break;
+			case safetyhook::InlineHook::Error::UNSUPPORTED_INSTRUCTION_IN_TRAMPOLINE:
+				errorType = "UNSUPPORTED_INSTRUCTION_IN_TRAMPOLINE";
+				break;
+			case safetyhook::InlineHook::Error::FAILED_TO_UNPROTECT:
+				errorType = "FAILED_TO_UNPROTECT";
+				break;
+			case safetyhook::InlineHook::Error::NOT_ENOUGH_SPACE:
+				errorType = "NOT_ENOUGH_SPACE";
+				break;
 		}
 
 		sprintf_s(errorMsg, "Failed to create hook at %p\nError: %s", addr, errorType);

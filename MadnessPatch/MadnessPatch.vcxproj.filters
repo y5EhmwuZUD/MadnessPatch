@@ -123,6 +123,12 @@
     <ClInclude Include="..\include\SDK\SDK_HEADERS\XAudio2_structs.hpp">
       <Filter>SDK\SDK_HEADERS</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Controller.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ini.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="MadnessPatch.ini" />
@@ -136,6 +142,9 @@
     </Filter>
     <Filter Include="SDK\SDK_HEADERS">
       <UniqueIdentifier>{0c212c8a-c529-4312-b662-d497f915307f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{a26108f8-6e7d-4c35-8bc3-f3e1076eb4db}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

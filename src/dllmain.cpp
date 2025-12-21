@@ -1,16 +1,21 @@
 ﻿#define MINI_CASE_SENSITIVE
 #define _USE_MATH_DEFINES
+#define NOMINMAX
 
 #include <Windows.h>
 
 #include <stacktrace>
 
+#include "SDK\SdkHeaders.hpp"
+
 #include "ini.hpp"
 #include "dllmain.hpp"
+#include "Controller.hpp"
 #include "helper.hpp"
 #include <shlwapi.h>
-#include <ShlObj.h>
+
 #pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "SDL3-static.lib")
 
 struct GlobalState
 {
@@ -101,6 +106,8 @@ bool AutoResolution = false;
 bool UseWindowed = false;
 
 // Input
+bool UseSDLControllerInput = false;
+bool UsePS3ControllerIcons = false;
 bool DisableMouseAcceleration = false;
 bool DisableControllerAcceleration = false;
 bool DisableMouseSmoothing = false;
@@ -200,6 +207,8 @@ static void ReadConfig()
 	UseWindowed = IniHelper::ReadInteger("Display", "UseWindowed", 0) == 1;
 
 	// Input
+	UseSDLControllerInput = IniHelper::ReadInteger("Input", "UseSDLControllerInput", 1) == 1;
+	UsePS3ControllerIcons = IniHelper::ReadInteger("Input", "UsePS3ControllerIcons", 0) == 1;
 	DisableMouseAcceleration = IniHelper::ReadInteger("Input", "DisableMouseAcceleration", 1) == 1;
 	DisableControllerAcceleration = IniHelper::ReadInteger("Input", "DisableControllerAcceleration", 0) == 1;
 	DisableMouseSmoothing = IniHelper::ReadInteger("Input", "DisableMouseSmoothing", 0) == 1;
@@ -233,6 +242,12 @@ static void ReadConfig()
 	// GIsSpecialPCEdition
 	UpdateConfigBool(L"GIsSpecialPCEdition", UnlockCompleteEditionDLC);
 	UnlockCompleteEditionDLC = true;
+
+	if (UseSDLControllerInput)
+	{
+		auto [screenWidth, screenHeight] = SystemHelper::GetScreenResolution();
+		ControllerHelper::SetTouchpadDimensions(screenWidth, screenHeight);
+	}
 }
 
 #pragma region Helper
@@ -771,6 +786,82 @@ static unsigned int __fastcall FFullScreenMovieBink_PlayMovie_Hook(int* thisp, i
 	}
 
 	return FFullScreenMovieBink_PlayMovie.unsafe_thiscall<unsigned int>(thisp, a2, MovieFilename, a4, a5, a6, a7, a8, a9, Src);
+}
+
+// =========================
+// UseSDLControllerInput
+// =========================
+
+safetyhook::InlineHook XInputGetStateHook;
+safetyhook::InlineHook XInputSetStateHook;
+
+static DWORD WINAPI XInputGetState_Hook(DWORD dwUserIndex, XINPUT_STATE* pState)
+{
+	if (dwUserIndex != 0) return ERROR_DEVICE_NOT_CONNECTED;
+	return ControllerHelper::PollController(pState);
+}
+
+static DWORD WINAPI XInputSetState_Hook(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
+{
+	if (dwUserIndex != 0) return ERROR_DEVICE_NOT_CONNECTED;
+	return ControllerHelper::SetVibration(pVibration);
+}
+
+// =========================
+// UsePS3ControllerIcons
+// =========================
+
+static SafetyHookInline GString_AssignString{};
+
+static int __fastcall GString_AssignString_Hook(int thisp, int, char* Src, size_t Size)
+{
+	// Check if we use PS3 icons
+	if (UsePS3ControllerIcons == 2 || (UsePS3ControllerIcons == 0 && ControllerHelper::GetGamepadStyle() == ControllerHelper::GamepadStyle::PlayStation))
+	{
+		// Xbox -> PlayStation texture mapping
+		static const struct { const char* xbox; size_t xboxLen; const char* ps; size_t psLen; } redirects[] =
+		{
+			// Face Buttons
+			{ "HUD_I64.tga", 11, "HUD_I67.tga", 11 },  // A -> Cross
+			{ "HUD_I5F.tga", 11, "HUD_I6B.tga", 11 },  // B -> Circle
+			{ "HUD_I12.tga", 11, "HUD_IF.tga",  10 },  // X -> Square
+			{ "HUD_I19.tga", 11, "HUD_I16.tga", 11 },  // Y -> Triangle
+
+			{ "weapons_I6C.tga", 15, "weapons_I69.tga", 15 },  // A -> Cross
+			{ "weapons_I65.tga", 15, "weapons_I62.tga", 15 },  // B -> Circle
+
+			// Bumpers
+			{ "HUD_I30.tga", 11, "HUD_I2D.tga", 11 },  // LB -> L1
+			{ "HUD_I29.tga", 11, "HUD_I26.tga", 11 },  // RB -> R1
+
+			// Triggers (skip, goes out of bound)
+			//{ "HUD_I37.tga", 11, "HUD_I34.tga", 11 },  // LT -> L2
+			//{ "HUD_I22.tga", 11, "HUD_I1F.tga", 11 },  // RT -> R2
+
+			// Stick Clicks
+			{ "HUD_I54.tga",  11, "HUD_I78.tga",  11 }, // LS -> L3
+			{ "HUD_I5A.tga",  11, "HUD_I75.tga",  11 }, // RS -> R3
+			{ "HUD_I6F.tga",  11, "HUD_I78.tga",  11 }, // LS -> L3
+			{ "HUD_I72.tga",  11, "HUD_I75.tga",  11 }, // RS -> R3
+			{ "HUD_I1DB.tga", 12, "HUD_I1D7.tga", 12 }, // LS -> L3
+
+			// Menu Buttons
+			{ "HUD_I3E.tga", 11, "HUD_I43.tga", 11 },
+
+			// D-Pad
+			{ "HUD_IB.tga", 10, "HUD_I8.tga", 10 },
+		};
+
+		for (const auto& r : redirects)
+		{
+			if (Size == r.xboxLen && memcmp(Src, r.xbox, r.xboxLen) == 0)
+			{
+				return GString_AssignString.unsafe_thiscall<int>(thisp, (void*)r.ps, r.psLen);
+			}
+		}
+	}
+
+	return GString_AssignString.unsafe_thiscall<int>(thisp, Src, Size);
 }
 
 // ===========================
@@ -1316,6 +1407,22 @@ static void ApplyAutoResolution()
 	);
 }
 
+static void ApplyUseSDLControllerInput()
+{
+	if (!UseSDLControllerInput) return;
+
+	ControllerHelper::InitializeSDLGamepad();
+	XInputGetStateHook = HookHelper::CreateHookAPI(L"XINPUT1_3.dll", "XInputGetState", &XInputGetState_Hook);
+	XInputSetStateHook = HookHelper::CreateHookAPI(L"XINPUT1_3.dll", "XInputSetState", &XInputSetState_Hook);
+}
+
+static void ApplyUsePS3ControllerIcons()
+{
+	if (UsePS3ControllerIcons == 1 || (UsePS3ControllerIcons == 0 && !UseSDLControllerInput)) return;
+
+	GString_AssignString = HookHelper::CreateHook((void*)0xE7DCE0, &GString_AssignString_Hook);
+}
+
 static void ApplyDisableMouseAcceleration()
 {
 	if (!DisableMouseAcceleration && !DisableControllerAcceleration) return;
@@ -1484,7 +1591,7 @@ static void ApplyResolutionHook()
 	if (!FontScaling && !FixUltraWideScreenFOV) return;
 
 	DWORD addr_GetGEnginePtr = ScanModuleSignature(g_State.GameModule, "E8 ?? ?? ?? ?? 83 C4 40 A3 ?? ?? ?? ?? 68", "GetGEnginePtr");
-	DWORD addr_UpdateViewportRHI = ScanModuleSignature(g_State.GameModule, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC ?? 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D 45 F4 64 A3 00 00 00 00 8B ?? FF 15 ?? ?? ?? ??", "UpdateViewportRHI");
+	DWORD addr_UpdateViewportRHI = ScanModuleSignature(g_State.GameModule, "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC ?? 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D 45 F4 64 A3 00 00 00 00 8B ?? FF 15", "UpdateViewportRHI");
 
 	if (addr_GetGEnginePtr == 0 ||
 		addr_UpdateViewportRHI == 0) {
@@ -1507,7 +1614,7 @@ static void ApplyGetPointerHook()
 	if (!DisableMouseAcceleration && !FixUltraWideScreenFOV) return;
 
 	DWORD addr_PlayActorPtr = ScanModuleSignature(g_State.GameModule, "89 47 40 8B 45 ?? 88 5D FC 89 5D ?? 89 5D ?? 3B C3 74 0E 6A 01 50 E8 ?? ?? ?? ?? 83 C4 08 89 5D", "PlayActorPtr");
-	DWORD addr_UpdatePlayActorPtr = ScanModuleSignature(g_State.GameModule, "?? ?? 2C 02 00 00 ?? ?? 14 06 00 00", "UpdatePlayActorPtr");
+	DWORD addr_UpdatePlayActorPtr = ScanModuleSignature(g_State.GameModule, "2C 02 00 00 ?? ?? 14 06 00 00", "UpdatePlayActorPtr");
 
 	if (addr_PlayActorPtr == 0 ||
 		addr_UpdatePlayActorPtr == 0) {
@@ -1529,7 +1636,7 @@ static void ApplyGetPointerHook()
 	);
 
 	static SafetyHookMid updateActorFOVPtr{};
-	updateActorFOVPtr = safetyhook::create_mid(addr_UpdatePlayActorPtr,
+	updateActorFOVPtr = safetyhook::create_mid(addr_UpdatePlayActorPtr - 0x2,
 		[](safetyhook::Context& ctx)
 		{
 			uint32_t esi = ctx.esi;
@@ -1565,8 +1672,10 @@ static void Init()
 	ApplyAutoResolution();
 
 	// Input
+	ApplyUseSDLControllerInput();
+	ApplyUsePS3ControllerIcons();
 	ApplyDisableMouseAcceleration();
-
+		
 	// Graphics
 	ApplyFixUltraWideScreenFOV();
 	ApplyImprovedTextureStreaming();
