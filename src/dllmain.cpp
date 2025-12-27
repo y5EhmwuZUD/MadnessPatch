@@ -61,6 +61,31 @@ GlobalState g_State;
 static std::vector<std::unique_ptr<wchar_t[]>> g_tempConfigStrings;
 static const wchar_t* g_replacementString = nullptr;
 
+struct ConfigOverride
+{
+	std::wstring value;
+	bool* isEnabled;
+};
+
+struct WStringViewHash
+{
+	using is_transparent = void;
+
+	size_t operator()(std::wstring_view sv) const
+	{
+		size_t hash = 0x811C9DC5;
+		for (wchar_t c : sv)
+		{
+			hash ^= static_cast<size_t>(c);
+			hash *= 0x01000193;
+		}
+		return hash;
+	}
+
+	size_t operator()(const std::wstring& s) const { return operator()(std::wstring_view(s)); }
+	size_t operator()(const wchar_t* s) const { return operator()(std::wstring_view(s)); }
+};
+
 // Ini Input override
 struct PendingRestore
 {
@@ -73,6 +98,15 @@ struct PendingRestore
 
 static PendingRestore g_pendingRestore = { 0, nullptr, 0, 0, false };
 static std::vector<std::unique_ptr<wchar_t[]>> g_tempFixedStrings;
+
+// Gamepad prompt override
+struct TextureRedirect
+{
+	const char* target;
+	size_t targetLen;
+};
+
+static std::unordered_map<std::string_view, TextureRedirect> g_textureRedirects;
 
 static constexpr float TARGET_FRAME_TIME = 1.0f / 30.0f;
 static constexpr float ASPECT_RATIO_16_9 = 16.0f / 9.0f;
@@ -122,13 +156,7 @@ bool FixUltraWideScreenFOV = false;
 bool ReducedMipMapBias = false;
 bool FixBinkVideoBT709 = false;
 
-struct ConfigOverride
-{
-	std::wstring value;
-	bool* isEnabled;
-};
-
-static std::unordered_map<std::wstring, ConfigOverride> g_configOverrides = 
+static std::unordered_map<std::wstring, ConfigOverride, WStringViewHash, std::equal_to<>> g_configOverrides =
 {
 	// [Engine.Engine]
 	{L"MaxSmoothedFrameRate", {L"120", &EnableMaxSmoothedFrameRate}},
@@ -269,7 +297,7 @@ static DWORD ScanModuleSignature(HMODULE Module, std::string_view Signature, con
 static std::wstring FixPipeSpacing(const std::wstring& input)
 {
 	std::wstring result;
-	result.reserve(input.length() * 2);
+	result.reserve(input.length() + 16);
 	size_t i = 0;
 
 	// Skip leading pipes and spaces
@@ -423,6 +451,39 @@ static void ReplaceConfigString(safetyhook::Context& ctx, const wchar_t* newStri
 		g_pendingRestore.needsRestore = false;
 	}
 }
+
+static void InitializeTextureRedirects()
+{
+	g_textureRedirects =
+	{
+		// Face Buttons
+		{"HUD_I64.tga", {"HUD_I67.tga", 11}},  // A -> Cross
+		{"HUD_I5F.tga", {"HUD_I6B.tga", 11}},  // B -> Circle
+		{"HUD_I12.tga", {"HUD_IF.tga",  10}},  // X -> Square
+		{"HUD_I19.tga", {"HUD_I16.tga", 11}},  // Y -> Triangle
+
+		{"weapons_I6C.tga", {"weapons_I69.tga", 15}},  // A -> Cross
+		{"weapons_I65.tga", {"weapons_I62.tga", 15}},  // B -> Circle
+
+		// Bumpers
+		{"HUD_I30.tga", {"HUD_I2D.tga", 11}},  // LB -> L1
+		{"HUD_I29.tga", {"HUD_I26.tga", 11}},  // RB -> R1
+
+		// Stick Clicks
+		{"HUD_I54.tga",  {"HUD_I78.tga",  11}},
+		{"HUD_I5A.tga",  {"HUD_I75.tga",  11}},
+		{"HUD_I6F.tga",  {"HUD_I78.tga",  11}},
+		{"HUD_I72.tga",  {"HUD_I75.tga",  11}},
+		{"HUD_I1DB.tga", {"HUD_I1D7.tga", 12}},
+
+		// Menu Buttons
+		{"HUD_I3E.tga", {"HUD_I43.tga", 11}},
+
+		// D-Pad
+		{"HUD_IB.tga", {"HUD_I8.tga", 10}},
+	};
+}
+
 
 static bool IsUALPresent()
 {
@@ -815,49 +876,12 @@ static SafetyHookInline GString_AssignString{};
 
 static int __fastcall GString_AssignString_Hook(int thisp, int, char* Src, size_t Size)
 {
-	// Check if we use PS3 icons
 	if (UsePS3ControllerIcons == 2 || (UsePS3ControllerIcons == 0 && ControllerHelper::GetGamepadStyle() == ControllerHelper::GamepadStyle::PlayStation))
 	{
-		// Xbox -> PlayStation texture mapping
-		static const struct { const char* xbox; size_t xboxLen; const char* ps; size_t psLen; } redirects[] =
+		auto it = g_textureRedirects.find(std::string_view(Src, Size));
+		if (it != g_textureRedirects.end())
 		{
-			// Face Buttons
-			{ "HUD_I64.tga", 11, "HUD_I67.tga", 11 },  // A -> Cross
-			{ "HUD_I5F.tga", 11, "HUD_I6B.tga", 11 },  // B -> Circle
-			{ "HUD_I12.tga", 11, "HUD_IF.tga",  10 },  // X -> Square
-			{ "HUD_I19.tga", 11, "HUD_I16.tga", 11 },  // Y -> Triangle
-
-			{ "weapons_I6C.tga", 15, "weapons_I69.tga", 15 },  // A -> Cross
-			{ "weapons_I65.tga", 15, "weapons_I62.tga", 15 },  // B -> Circle
-
-			// Bumpers
-			{ "HUD_I30.tga", 11, "HUD_I2D.tga", 11 },  // LB -> L1
-			{ "HUD_I29.tga", 11, "HUD_I26.tga", 11 },  // RB -> R1
-
-			// Triggers (skip, goes out of bound)
-			//{ "HUD_I37.tga", 11, "HUD_I34.tga", 11 },  // LT -> L2
-			//{ "HUD_I22.tga", 11, "HUD_I1F.tga", 11 },  // RT -> R2
-
-			// Stick Clicks
-			{ "HUD_I54.tga",  11, "HUD_I78.tga",  11 }, // LS -> L3
-			{ "HUD_I5A.tga",  11, "HUD_I75.tga",  11 }, // RS -> R3
-			{ "HUD_I6F.tga",  11, "HUD_I78.tga",  11 }, // LS -> L3
-			{ "HUD_I72.tga",  11, "HUD_I75.tga",  11 }, // RS -> R3
-			{ "HUD_I1DB.tga", 12, "HUD_I1D7.tga", 12 }, // LS -> L3
-
-			// Menu Buttons
-			{ "HUD_I3E.tga", 11, "HUD_I43.tga", 11 },
-
-			// D-Pad
-			{ "HUD_IB.tga", 10, "HUD_I8.tga", 10 },
-		};
-
-		for (const auto& r : redirects)
-		{
-			if (Size == r.xboxLen && memcmp(Src, r.xbox, r.xboxLen) == 0)
-			{
-				return GString_AssignString.unsafe_thiscall<int>(thisp, (void*)r.ps, r.psLen);
-			}
+			return GString_AssignString.unsafe_thiscall<int>(thisp, (void*)it->second.target, it->second.targetLen);
 		}
 	}
 
@@ -1421,6 +1445,7 @@ static void ApplyUsePS3ControllerIcons()
 	if (UsePS3ControllerIcons == 1 || (UsePS3ControllerIcons == 0 && !UseSDLControllerInput)) return;
 
 	GString_AssignString = HookHelper::CreateHook((void*)0xE7DCE0, &GString_AssignString_Hook);
+	InitializeTextureRedirects();
 }
 
 static void ApplyDisableMouseAcceleration()
