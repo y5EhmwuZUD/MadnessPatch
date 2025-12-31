@@ -1444,8 +1444,13 @@ static void ApplyUsePS3ControllerIcons()
 {
 	if (UsePS3ControllerIcons == 1 || (UsePS3ControllerIcons == 0 && !UseSDLControllerInput)) return;
 
-	GString_AssignString = HookHelper::CreateHook((void*)0xE7DCE0, &GString_AssignString_Hook);
-	InitializeTextureRedirects();
+	DWORD addr_AssignString = ScanModuleSignature(g_State.GameModule, "56 8B F1 8B 0E 57 8B F9 33 C0 83 E1 03 83 E7 FC", "AssignString");
+
+	if (addr_AssignString != 0)
+	{
+		GString_AssignString = HookHelper::CreateHook((void*)addr_AssignString, &GString_AssignString_Hook);
+		InitializeTextureRedirects();
+	}
 }
 
 static void ApplyDisableMouseAcceleration()
