@@ -144,6 +144,7 @@ bool UseSDLControllerInput = false;
 bool UsePS3ControllerIcons = false;
 bool DisableMouseAcceleration = false;
 bool DisableControllerAcceleration = false;
+bool TouchpadEnabled = false;
 bool DisableMouseSmoothing = false;
 bool SkipCutscenesWithEnter = false;
 
@@ -239,6 +240,7 @@ static void ReadConfig()
 	UsePS3ControllerIcons = IniHelper::ReadInteger("Input", "UsePS3ControllerIcons", 0) == 1;
 	DisableMouseAcceleration = IniHelper::ReadInteger("Input", "DisableMouseAcceleration", 1) == 1;
 	DisableControllerAcceleration = IniHelper::ReadInteger("Input", "DisableControllerAcceleration", 0) == 1;
+	TouchpadEnabled = IniHelper::ReadInteger("Input", "TouchpadEnabled", 1) == 1;
 	DisableMouseSmoothing = IniHelper::ReadInteger("Input", "DisableMouseSmoothing", 0) == 1;
 	SkipCutscenesWithEnter = IniHelper::ReadInteger("Input", "SkipCutscenesWithEnter", 0) == 1;
 
@@ -276,6 +278,8 @@ static void ReadConfig()
 		auto [screenWidth, screenHeight] = SystemHelper::GetScreenResolution();
 		ControllerHelper::SetTouchpadDimensions(screenWidth, screenHeight);
 	}
+
+	ControllerHelper::SetTouchpadEnabled(TouchpadEnabled);
 }
 
 #pragma region Helper
