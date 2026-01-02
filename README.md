@@ -14,7 +14,7 @@ A patch that fixes various issues in the PC port of Alice: Madness Returns.
 > **Download**: [MadnessPatch.zip](https://github.com/Wemino/MadnessPatch/releases/latest/download/MadnessPatch.zip)  
 > Extract the contents of the zip file into the game's `Win32` folder, which contains the `AliceMadnessReturns.exe` file.
 >
-> <img width="240" src="assets/install.png">
+> <img width="240" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/install.png">
 >
 > Directory path for Steam:  
 > `SteamLibrary\steamapps\common\Alice Madness Returns\Binaries\Win32`
@@ -23,7 +23,7 @@ A patch that fixes various issues in the PC port of Alice: Madness Returns.
 > `EA\Alice Madness Returns\Game\Alice2\Binaries\Win32`
 
 > [!WARNING]
-If the game doesn’t start on Windows after installing the patch, try updating the latest Microsoft Visual C++ Redistributable (x86).  
+If the game doesn't start on Windows after installing the patch, try updating the latest Microsoft Visual C++ Redistributable (x86).  
 You can download it here: https://aka.ms/vs/17/release/vc_redist.x86.exe
 
 > [!TIP]  
@@ -32,7 +32,7 @@ You can download it here: https://aka.ms/vs/17/release/vc_redist.x86.exe
 ### Steam Deck/Linux Specific Instructions (Windows users can skip this)
 
 > [!WARNING]
-> To launch the game on Steam Deck or Linux, set the game’s compatibility tool to Proton Experimental in the Steam properties.
+> To launch the game on Steam Deck or Linux, set the game's compatibility tool to Proton Experimental in the Steam properties.
 
 # Features
 
@@ -45,8 +45,8 @@ If you want a different size, you can fine-tune it with `FontScalingFactor` in `
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img style="width:100%" src="assets/FontScaling_Off.jpg"></td>
-      <td width="50%"><img style="width:100%" src="assets/FontScaling_On.jpg"></td>
+      <td width="50%"><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/FontScaling_Off.jpg"></td>
+      <td width="50%"><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/FontScaling_On.jpg"></td>
     </tr>
     <tr>
       <td align="center">4K Vanilla</td>
@@ -69,13 +69,13 @@ Fix issues where certain input mappings fail to respond correctly. This particul
 
 ## Force High Resolution Textures
 
-The game normally loads blurry textures first and then sharpens them as you get closer, which was meant for consoles but looks distracting on PC. This patch forces the highest texture resolution from the start and improves texture streaming, so you don’t see textures popping into clarity as you move around. It also slightly reduces mipmap bias, improving texture sharpness at a distance.
+The game normally loads blurry textures first and then sharpens them as you get closer, which was meant for consoles but looks distracting on PC. This patch forces the highest texture resolution from the start and improves texture streaming, so you don't see textures popping into clarity as you move around. It also slightly reduces mipmap bias, improving texture sharpness at a distance.
 
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img style="width:100%" src="assets/ForceHighResTextures_Off.jpg"></td>
-      <td width="50%"><img style="width:100%" src="assets/ForceHighResTextures_On.jpg"></td>
+      <td width="50%"><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/ForceHighResTextures_Off.jpg"></td>
+      <td width="50%"><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/ForceHighResTextures_On.jpg"></td>
     </tr>
     <tr>
       <td align="center">Vanilla</td>
@@ -93,8 +93,8 @@ Switched the Bink video color profile from BT.601 to BT.709, which is the standa
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img style="width:100%" src="assets/FixBinkVideoBT709_Off.jpg"></td>
-      <td width="50%"><img style="width:100%" src="assets/FixBinkVideoBT709_On.jpg"></td>
+      <td width="50%"><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/FixBinkVideoBT709_Off.jpg"></td>
+      <td width="50%"><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/FixBinkVideoBT709_On.jpg"></td>
     </tr>
     <tr>
       <td align="center">Vanilla (BT.601)</td>
@@ -128,13 +128,13 @@ Removes pillarboxing and adjusts the FOV for ultrawide monitors.
 <div align="center">
   <table>
     <tr>
-      <td><img style="width:100%" src="assets/FixUltraWideScreenFOV_Off.jpg"></td>
+      <td><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/FixUltraWideScreenFOV_Off.jpg"></td>
     </tr>
     <tr>
       <td align="center">Vanilla 21:9 (Cropped Viewport)</td>
     </tr>
     <tr>
-      <td><img style="width:100%" src="assets/FixUltraWideScreenFOV_On.jpg"></td>
+      <td><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/FixUltraWideScreenFOV_On.jpg"></td>
     </tr>
     <tr>
       <td align="center">MadnessPatch 21:9</td>
@@ -150,13 +150,13 @@ Enable with `SkipCutscenesWithEnter = 1` in `MadnessPatch.ini`.
 
 ## Framerate Limiter
 
-Allow to set a framerate limit easily without editing the game’s files.
+Allow to set a framerate limit easily without editing the game's files.
 
 Set `MaxFPS` in `MadnessPatch.ini` (0 = disable, recommended maximum: 120).
 
 ## Complete Edition DLC Unlock
 
-Unlocks all Complete Edition costumes, weapons, and adds a menu option to launch the original Alice game without editing the game’s files.
+Unlocks all Complete Edition costumes, weapons, and adds a menu option to launch the original Alice game without editing the game's files.
 > **Note**: While weapons are showing up, they are not functional. See: https://github.com/Wemino/MadnessPatch/issues/9
 
 ## Improved Window Management
