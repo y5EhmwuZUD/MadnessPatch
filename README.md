@@ -105,6 +105,23 @@ Switched the Bink video color profile from BT.601 to BT.709, which is the standa
 
 ## Input Improvements
 
+### SDL Controller Support
+
+Adds support for PlayStation and Nintendo Switch controllers via SDL3.
+
+PlayStation button icons are automatically displayed in the UI when a PlayStation controller is detected.
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%"><img style="width:100%" src="https://raw.githubusercontent.com/Wemino/MadnessPatch/main/assets/UsePS3ControllerIcons.png"></td>
+    </tr>
+    <tr>
+      <td align="center">PlayStation Button Prompts</td>
+    </tr>
+  </table>
+</div>
+
 ### Disable Mouse Acceleration
 
 Stops the game from ramping up mouse speed when you start moving it.
@@ -194,7 +211,7 @@ Enable individually in `MadnessPatch.ini`.
 All features can be customized via the `MadnessPatch.ini` file.
 
 # Credits
-
+- [SDL3](https://www.libsdl.org/) for improved controller support.
 - [safetyhook](https://github.com/cursey/safetyhook) for hooking.  
 - [mINI](https://github.com/metayeti/mINI) for INI file handling.  
 - [CRASHARKI](https://github.com/CRASHARKI) for the logo.
