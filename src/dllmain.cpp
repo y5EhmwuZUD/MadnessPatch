@@ -124,6 +124,7 @@ bool FixHashTableRaceCondition = false;
 bool FixPhysX = false;
 bool FixInputBinding = false;
 bool FixWindowHandling = false;
+int MaxProcessorCount = 0;
 
 // General
 bool UnlockCompleteEditionDLC = false;
@@ -220,6 +221,7 @@ static void ReadConfig()
 	FixPhysX = IniHelper::ReadInteger("Fixes", "FixPhysX", 1) == 1;
 	FixInputBinding = IniHelper::ReadInteger("Fixes", "FixInputBinding", 1) == 1;
 	FixWindowHandling = IniHelper::ReadInteger("Fixes", "FixWindowHandling", 1) == 1;
+	MaxProcessorCount = IniHelper::ReadInteger("Fixes", "MaxProcessorCount", 8);
 
 	// General
 	UnlockCompleteEditionDLC = IniHelper::ReadInteger("General", "UnlockCompleteEditionDLC", 1) == 1;
@@ -277,6 +279,11 @@ static void ReadConfig()
 	{
 		auto [screenWidth, screenHeight] = SystemHelper::GetScreenResolution();
 		ControllerHelper::SetTouchpadDimensions(screenWidth, screenHeight);
+	}
+
+	if (MaxProcessorCount < -1 || MaxProcessorCount == 0)
+	{
+		MaxProcessorCount = 8;
 	}
 
 	ControllerHelper::SetTouchpadEnabled(TouchpadEnabled);
@@ -772,6 +779,31 @@ static LONG __fastcall UpdateMouseLock_Hook(int thisPtr, int)
 	return 0;
 }
 
+// ===========================
+// MaxProcessorCount
+// ===========================
+
+safetyhook::InlineHook hkGetSystemInfo;
+
+static void WINAPI GetSystemInfo_Hook(LPSYSTEM_INFO lpSystemInfo)
+{
+	hkGetSystemInfo.stdcall<void, LPSYSTEM_INFO>(lpSystemInfo);
+
+	if (lpSystemInfo->dwNumberOfProcessors > (DWORD)MaxProcessorCount)
+	{
+		lpSystemInfo->dwNumberOfProcessors = (DWORD)MaxProcessorCount;
+
+		if (MaxProcessorCount >= sizeof(DWORD_PTR) * 8)
+		{
+			lpSystemInfo->dwActiveProcessorMask = ~(DWORD_PTR)0;
+		}
+		else
+		{
+			lpSystemInfo->dwActiveProcessorMask = (DWORD_PTR)((1ULL << MaxProcessorCount) - 1);
+		}
+	}
+}
+
 // =======================
 // Ini settings override
 // =======================
@@ -1219,6 +1251,13 @@ static void ApplyFixWindowHandling()
 	{
 		MessageBoxA(NULL, "Error: Unable to find signature for patch: BlockMessages_2", "", MB_ICONERROR);
 	}
+}
+
+static void ApplyFixCPUCores()
+{
+	if (MaxProcessorCount == -1) return;
+
+	hkGetSystemInfo = HookHelper::CreateHookAPI(L"kernel32.dll", "GetSystemInfo", &GetSystemInfo_Hook);
 }
 
 static void ApplyIniSettingsHook()
@@ -1695,6 +1734,7 @@ static void Init()
 	ApplyFixPhysX();
 	ApplyFixInputBinding();
 	ApplyFixWindowHandling();
+	ApplyFixCPUCores();
 
 	// General
 	ApplyIniSettingsHook();
