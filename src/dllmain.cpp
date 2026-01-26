@@ -146,6 +146,7 @@ bool UsePS3ControllerIcons = false;
 bool DisableMouseAcceleration = false;
 bool DisableControllerAcceleration = false;
 bool TouchpadEnabled = false;
+bool InvertABXYButtons = false;
 bool DisableMouseSmoothing = false;
 bool SkipCutscenesWithEnter = false;
 
@@ -243,6 +244,7 @@ static void ReadConfig()
 	DisableMouseAcceleration = IniHelper::ReadInteger("Input", "DisableMouseAcceleration", 1) == 1;
 	DisableControllerAcceleration = IniHelper::ReadInteger("Input", "DisableControllerAcceleration", 0) == 1;
 	TouchpadEnabled = IniHelper::ReadInteger("Input", "TouchpadEnabled", 1) == 1;
+	InvertABXYButtons = IniHelper::ReadInteger("Input", "InvertABXYButtons", 1) == 1;
 	DisableMouseSmoothing = IniHelper::ReadInteger("Input", "DisableMouseSmoothing", 0) == 1;
 	SkipCutscenesWithEnter = IniHelper::ReadInteger("Input", "SkipCutscenesWithEnter", 0) == 1;
 
@@ -895,7 +897,7 @@ safetyhook::InlineHook XInputSetStateHook;
 static DWORD WINAPI XInputGetState_Hook(DWORD dwUserIndex, XINPUT_STATE* pState)
 {
 	if (dwUserIndex != 0) return ERROR_DEVICE_NOT_CONNECTED;
-	return ControllerHelper::PollController(pState);
+	return ControllerHelper::PollController(pState, InvertABXYButtons);
 }
 
 static DWORD WINAPI XInputSetState_Hook(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
