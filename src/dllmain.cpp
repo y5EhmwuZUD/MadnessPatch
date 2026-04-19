@@ -225,7 +225,7 @@ static void ReadConfig()
 	FixPhysX = IniHelper::ReadInteger("Fixes", "FixPhysX", 1) == 1;
 	FixInputBinding = IniHelper::ReadInteger("Fixes", "FixInputBinding", 1) == 1;
 	FixWindowHandling = IniHelper::ReadInteger("Fixes", "FixWindowHandling", 1) == 1;
-	MaxProcessorCount = IniHelper::ReadInteger("Fixes", "MaxProcessorCount", 8);
+	MaxProcessorCount = IniHelper::ReadInteger("Fixes", "MaxProcessorCount", 2);
 
 	// General
 	UnlockCompleteEditionDLC = IniHelper::ReadInteger("General", "UnlockCompleteEditionDLC", 1) == 1;
@@ -1797,6 +1797,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)(base);
 			IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
 			DWORD timestamp = nt->FileHeader.TimeDateStamp;
+			DWORD entrypoint = base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base);
 
 			if (timestamp == 0x4D9DA4C5)
 			{
@@ -1805,11 +1806,23 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			}
 			else if (timestamp == 0x4DC8887C)
 			{
-				MFortress_Steam::ApplyPatches();
+				if (entrypoint != 0x1021EFF)
+				{
+					MFortress_Steam::ApplyPatches();
+				}
 			}
 			else if (timestamp == 0x4DC89913)
 			{
-				MFortress_EA::ApplyPatches();
+				if (entrypoint != 0x102255F)
+				{
+					MFortress_EA::ApplyPatches();
+				}
+
+				// RELOADED has fixed headers, skip dll loading
+				if (entrypoint == 0x111BFBF)
+				{
+					MemoryHelper::MakeJMP(entrypoint, 0x102255F);
+				}
 			}
 			else if (timestamp != 0x4DAC7482) // Current Steam/EA App version
 			{
