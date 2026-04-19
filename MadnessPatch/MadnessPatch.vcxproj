@@ -20,14 +20,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <TargetName>dinput8</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <TargetName>dinput8</TargetName>
@@ -121,6 +121,8 @@
   <ItemGroup>
     <ClInclude Include="..\include\Controller.hpp" />
     <ClInclude Include="..\include\ini.hpp" />
+    <ClInclude Include="..\include\MFortress\Patches_EA.hpp" />
+    <ClInclude Include="..\include\MFortress\Patches_Steam.hpp" />
     <ClInclude Include="..\include\safetyhook\safetyhook.hpp" />
     <ClInclude Include="..\include\safetyhook\Zydis.h" />
     <ClInclude Include="..\include\SDK\GameDefines.hpp" />

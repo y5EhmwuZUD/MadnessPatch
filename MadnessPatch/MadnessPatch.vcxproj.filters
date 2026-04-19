@@ -129,6 +129,12 @@
     <ClInclude Include="..\include\ini.hpp">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\MFortress\Patches_EA.hpp">
+      <Filter>MFortress</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\MFortress\Patches_Steam.hpp">
+      <Filter>MFortress</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="MadnessPatch.ini" />
@@ -145,6 +151,9 @@
     </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{a26108f8-6e7d-4c35-8bc3-f3e1076eb4db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MFortress">
+      <UniqueIdentifier>{d08e5a7c-43e3-43fa-b9f2-3a1f4784bc94}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

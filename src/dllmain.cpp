@@ -8,6 +8,9 @@
 
 #include "SDK\SdkHeaders.hpp"
 
+#include "MFortress\Patches_EA.hpp"
+#include "MFortress\Patches_Steam.hpp"
+
 #include "ini.hpp"
 #include "dllmain.hpp"
 #include "Controller.hpp"
@@ -1795,9 +1798,18 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
 			DWORD timestamp = nt->FileHeader.TimeDateStamp;
 
-			if (timestamp == 0x4D9DA4C5 || timestamp == 0x4DC8887C || timestamp == 0x4DC89913) // DRM Builds
+			if (timestamp == 0x4D9DA4C5)
 			{
-				MessageBoxA(NULL, "The DRM versions of the game is not currently supported.", "MadnessPatch", MB_ICONERROR);
+				MessageBoxA(NULL, "The CD version is not supported.", "MadnessPatch", MB_ICONERROR);
+				return FALSE;
+			}
+			else if (timestamp == 0x4DC8887C)
+			{
+				MFortress_Steam::ApplyPatches();
+			}
+			else if (timestamp == 0x4DC89913)
+			{
+				MFortress_EA::ApplyPatches();
 			}
 			else if (timestamp != 0x4DAC7482) // Current Steam/EA App version
 			{
