@@ -1220,7 +1220,8 @@ static void ApplyFixWindowHandling()
 	}
 	else if (addr_BlockHookV2)
 	{
-		MemoryHelper::MakeNOP(addr_BlockHookV2, 0x16);
+		MemoryHelper::MakeNOP(addr_BlockHookV2, 0x5);
+		MemoryHelper::MakeNOP(addr_BlockHookV2 + 0x7, 0xF);
 		MemoryHelper::MakeNOP(addr_BlockHookV2 + 0x2D, 0x5);
 	}
 	else
